@@ -1,5 +1,6 @@
-import { Table, TableHead } from "flowbite-react";
+import { Button, Modal, Table, TableHead } from "flowbite-react";
 import React, { useEffect, useState } from "react";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -7,6 +8,8 @@ export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
   const [posts, setPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
   console.log(posts);
   useEffect(() => {
     const fetchPosts = async () => {
@@ -43,6 +46,26 @@ export default function DashPosts() {
       }
     } catch (err) {
       console.log(err.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    setShowModal(false);
+    try {
+      const res = await fetch(
+        `/api/post/delete-post/${postToDelete}/${currentUser._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.message);
+      } else {
+        setPosts((prev) => prev.filter((post) => post._id !== postToDelete));
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
   return (
@@ -85,14 +108,20 @@ export default function DashPosts() {
                   </Table.Cell>
                   <Table.Cell>{post.category}</Table.Cell>
                   <Table.Cell>
-                    <span className="text-red-500 font-medium hover:underline cursor-pointer">
+                    <span
+                      onClick={() => {
+                        setShowModal(true);
+                        setPostToDelete(post._id);
+                      }}
+                      className="text-red-500 font-medium hover:underline cursor-pointer"
+                    >
                       Delete
                     </span>
                   </Table.Cell>
                   <Table.Cell>
                     <Link
                       className="text-teal-500 cursor-pointer"
-                      to={`/update-post/${post.slug}`}
+                      to={`/update-post/${post._id}`}
                     >
                       <span>Edit</span>
                     </Link>
@@ -114,6 +143,30 @@ export default function DashPosts() {
       ) : (
         <p>You have no posts yet</p>
       )}
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mx-auto mb-4" />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this post?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDelete}>
+                Yes, I'm sure
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
