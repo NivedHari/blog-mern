@@ -55,8 +55,8 @@ npm install
 
 3. Create a .env file in the root directory and add the following:
 ```sh
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+mongo=your_mongodb_connection_string
+jwt_secret=your_jwt_secret
 ```
 4.Start the backend server
 ```sh
